@@ -94,7 +94,8 @@ def solve(client):
                 elements_with_bots.append(node)
             majority_false.remove(x)
             for x in elements_with_bots:
-                for y in range(1, len(shortest_paths[x][1]) - 1):
+                print(shortest_paths[x])
+                for y in range(1, len(shortest_paths[x]) - 1):
                     remote_path(x, client, shortest_paths, y)
     client.end()
 
