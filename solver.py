@@ -33,7 +33,7 @@ def solve(client):
     # ordered list of [node, shortest path weight] dec order
     sp_ordered_list = convert_dict_to_list(sp_lengths)
     sp_ordered_list.reverse()
-    print(sp_ordered_list)
+    print(shortest_paths)
     # max students
     biggest_liar = [-1, -1]
 
@@ -93,14 +93,9 @@ def solve(client):
                 bots_undiscovered -= 1
                 elements_with_bots.append(node)
             majority_false.remove(x)
-        for y in range(1, max_path_length):
-                for x in elements_with_bots:
+            for x in elements_with_bots:
+                for y in range(1, len(shortest_paths[x][1]) - 1):
                     remote_path(x, client, shortest_paths, y)
-        print(elements_with_bots)
-    print(bots_to_h)
-    print(client.bot_count[client.h])
-    print(client.l)
-    print(majority_false)
     client.end()
 
 
@@ -137,10 +132,9 @@ def update_student_metadata(students_metadata, students_votes, majority_liar, bi
 # Remote from s->H
 def remote_path(node, client, shortest_paths, cur_bots_index):
     sp = shortest_paths.get(node)
-    if cur_bots_index < len(sp) - 1:
-        from_node = sp[cur_bots_index]
-        to_node = sp[cur_bots_index + 1]
-        client.remote(from_node, to_node)
+    from_node = sp[cur_bots_index]
+    to_node = sp[cur_bots_index + 1]
+    client.remote(from_node, to_node)
 
 # Scout
 def scout_k(node, client, biggest_liar):
