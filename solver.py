@@ -43,7 +43,6 @@ def solve(client):
     # COMPUTATION
     # Phase 1
     for node, sp_weight in sp_ordered_list:
-        remote_boolean = True
         # Scout
         if node in remoted_nodes:
             continue
@@ -56,7 +55,7 @@ def solve(client):
                     yes += students_metadata.get(student)[0]
                 else:
                     no += students_metadata.get(student)[0]
-            remote_boolean = yes >= no
+            remote_boolean = (yes >= no)
         # Remote
         if remote_boolean:
             # find neighbor in shortest paths
