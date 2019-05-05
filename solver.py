@@ -53,9 +53,9 @@ def solve(client):
             no = 0
             for student, response in student_results:
                 if response:
-                    yes += students_metadata.get()
+                    yes += students_metadata.get(student)[0]
                 else:
-                    no +=
+                    no += students_metadata.get(student)[0]
             remote_boolean = yes >= no
         # Remote
         if remote_boolean:
@@ -65,7 +65,7 @@ def solve(client):
             # remote
             number_bots_remoted = client.remote(node, neighbor)
             # update_student_metadata
-            update_student_metadata(students_metadata, student_results, number_bots_remoted == 0)
+            biggest_liar = update_student_metadata(students_metadata, student_results, number_bots_remoted == 0, biggest_liar)
             # check if remote to h.
             if neighbor == client.h:
                 bots_to_h += number_bots_remoted
@@ -85,9 +85,29 @@ def solve(client):
 
     client.end()
 
-def update_student_metadata(students_metadata, students_votes, is_liar):
-    if is_liar:
-        for student, students_votes
+def update_student_metadata(students_metadata, students_votes, majority_liar, biggest_liar):
+    if majority_liar:
+        for student, response in students_votes:
+            if response:
+                # update voting power and number of wrong
+                students_metadata[student][0] *= 0.9
+                students_metadata[student][1] += 1
+            else:
+                # update voting power
+                students_metadata[student][0] += 1
+            if biggest_liar[1] < students_metadata[student][1]:
+                biggest_liar = [student, students_metadata[student][1]]
+    else:
+        for student, response in students_votes:
+            if not response:
+                # update voting power and number of wrong
+                students_metadata[student][0] *= 0.9
+                students_metadata[student][1] += 1
+            else:
+                # update voting power
+                students_metadata[student][0] += 1
+            if biggest_liar[1] < students_metadata[student][1]:
+                biggest_liar = [student, students_metadata[student][1]]
 
 # Remote from s->H
 def remote_path(node, client, shortest_paths, cur_bots_index):
