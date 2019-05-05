@@ -1,6 +1,7 @@
 import networkx as nx
 from operator import itemgetter
 import math
+import random
 
 
 def solve(client):
@@ -32,7 +33,7 @@ def solve(client):
     sp_lengths.pop(client.h)  # Gets rid of home node in list
 
     # ordered list of [node, shortest path weight] dec order
-    sp_ordered_list = convert_dict_to_ordered_list(sp_lengths)
+    sp_ordered_list = convert_dict_to_list(sp_lengths)
 
     # bots remoted to H
     bots_to_h = 0
@@ -41,7 +42,8 @@ def solve(client):
     biggest_liar = [-1, -1]
 
     # COMPUTATION
-    # Phase 1
+    # bots that were remoted to h
+    bots_to_h = 0
     for node, sp_weight in sp_ordered_list:
         # Scout
         if node in remoted_nodes:
@@ -77,14 +79,31 @@ def solve(client):
             # add to majority_false list.
             majority_false.append([node, sp_weight])
 
-    # Perform Phase 2
+    # update data
     if bots_to_h < client.l:
         majority_false.sort(key=itemgetter(1), reverse=True)
-        print(shortest_paths.get(majority_false[0][0]))
         max_path_length = len(shortest_paths.get(majority_false[0][0]))
+        elements_with_bots = []
         for y in range(max_path_length):
-            for x in majority_false:
-                remote_path(x[0], client, shortest_paths, y)
+            if y == 0:
+                bots_undiscovered = client.l - bots_to_h
+                while bots_undiscovered > 0 and len(majority_false) != 0:
+                    if len(majority_false) > 1:
+                        check_index = random.randrange(0, len(majority_false) - 1)
+                    else:
+                        check_index = 0
+                    x = majority_false[check_index]
+                    node = x[0]
+                    neighbor = shortest_paths.get(node)[1]
+                    remoted_value = client.remote(node, neighbor)
+                    if remoted_value != 0:
+                        bots_undiscovered -= 1
+                        elements_with_bots.append(node)
+                    majority_false.remove(x)
+            else:
+                for x in elements_with_bots:
+                    remote_path(x, client, shortest_paths, y)
+    print(bots_to_h)
     print(client.bot_count)
     print(client.bot_count[client.h])
     client.end()
@@ -97,7 +116,7 @@ def update_student_metadata(students_metadata, students_votes, majority_liar, bi
             response = value[1]
             if response:
                 # update voting power and number of wrong
-                students_metadata[student][0] *= 0.9
+                students_metadata[student][0] *= 0.5
                 students_metadata[student][1] += 1
             else:
                 # update voting power
@@ -110,7 +129,7 @@ def update_student_metadata(students_metadata, students_votes, majority_liar, bi
             response = value[1]
             if not response:
                 # update voting power and number of wrong
-                students_metadata[student][0] *= 0.9
+                students_metadata[student][0] *= 0.5
                 students_metadata[student][1] += 1
             else:
                 # update voting power
@@ -118,6 +137,7 @@ def update_student_metadata(students_metadata, students_votes, majority_liar, bi
             if biggest_liar[1] < students_metadata[student][1]:
                 biggest_liar = [student, students_metadata[student][1]]
     return biggest_liar
+
 
 # Remote from s->H
 def remote_path(node, client, shortest_paths, cur_bots_index):
@@ -137,8 +157,8 @@ def scout_k(node, client, biggest_liar):
 
 
 # convert dict of key = node, value = total shortest path weight -> sorted list based on value.
-def convert_dict_to_ordered_list(dict):
-    dict_list = [[key,value] for key, value in dict.items()]
+def convert_dict_to_list(dict):
+    dict_list = [[key, value] for key, value in dict.items()]
     sorted(dict_list, key=itemgetter(1), reverse=True)
     return dict_list
 
@@ -167,6 +187,7 @@ def reverse_lists_in_shortest_paths(d, H):
     for i in d.keys():
         d[i] = list(reversed(d[i]))
     d.pop(H)
+
 
 
 
