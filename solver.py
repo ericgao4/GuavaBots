@@ -65,7 +65,8 @@ def solve(client):
             # remote
             number_bots_remoted = client.remote(node, neighbor)
             # update_student_metadata
-            biggest_liar = update_student_metadata(students_metadata, student_results, number_bots_remoted == 0, biggest_liar)
+            biggest_liar = update_student_metadata(students_metadata,
+                                                   student_results, number_bots_remoted == 0, biggest_liar)
             # check if remote to h.
             if neighbor == client.h:
                 bots_to_h += number_bots_remoted
@@ -84,6 +85,7 @@ def solve(client):
                 remote_path(x[0], client, shortest_paths, y)
 
     client.end()
+
 
 def update_student_metadata(students_metadata, students_votes, majority_liar, biggest_liar):
     if majority_liar:
@@ -108,6 +110,7 @@ def update_student_metadata(students_metadata, students_votes, majority_liar, bi
                 students_metadata[student][0] += 1
             if biggest_liar[1] < students_metadata[student][1]:
                 biggest_liar = [student, students_metadata[student][1]]
+    return biggest_liar
 
 # Remote from s->H
 def remote_path(node, client, shortest_paths, cur_bots_index):
