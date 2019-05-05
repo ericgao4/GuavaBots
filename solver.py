@@ -7,6 +7,8 @@ def solve(client):
     client.end()
     client.start()
 
+    # SETUP
+
     # record the nodes that you know have been used remote(u,v)  on (add u and v ).
     remoted_nodes = []
 
@@ -16,10 +18,8 @@ def solve(client):
     # Students
     students_metadata = generate_student_list(client)
 
-    # SETUP
-
     # call this to populate MAJORITY_FALSE LIST
-    generate_student_list(client.k)
+    generate_student_list(client)
 
     # shortest paths dict {node: path from node to H}
     shortest_paths = djisktras(client.G, client.h)
@@ -47,14 +47,16 @@ def solve(client):
         if node in remoted_nodes:
             continue
         else:
-            student_results = scout_k(node, client, students_metadata, biggest_liar)
+            student_results = scout_k(node, client, biggest_liar)
             yes = 0
             no = 0
-            for student, response in student_results:
-                if response:
-                    yes += students_metadata.get(student)[0]
+            for value in student_results.items():
+                s = value[0]
+                r = value[1]
+                if r:
+                    yes += students_metadata.get(s)[0]
                 else:
-                    no += students_metadata.get(student)[0]
+                    no += students_metadata.get(s)[0]
             remote_boolean = (yes >= no)
         # Remote
         if remote_boolean:
@@ -78,17 +80,21 @@ def solve(client):
     # Perform Phase 2
     if bots_to_h < client.l:
         majority_false.sort(key=itemgetter(1), reverse=True)
-        max_path_length = len(shortest_paths.get(majority_false[0]))
+        print(shortest_paths.get(majority_false[0][0]))
+        max_path_length = len(shortest_paths.get(majority_false[0][0]))
         for y in range(max_path_length):
             for x in majority_false:
                 remote_path(x[0], client, shortest_paths, y)
-
+    print(client.bot_count)
+    print(client.bot_count[client.h])
     client.end()
 
 
 def update_student_metadata(students_metadata, students_votes, majority_liar, biggest_liar):
     if majority_liar:
-        for student, response in students_votes:
+        for value in students_votes.items():
+            student = value[0]
+            response = value[1]
             if response:
                 # update voting power and number of wrong
                 students_metadata[student][0] *= 0.9
@@ -99,7 +105,9 @@ def update_student_metadata(students_metadata, students_votes, majority_liar, bi
             if biggest_liar[1] < students_metadata[student][1]:
                 biggest_liar = [student, students_metadata[student][1]]
     else:
-        for student, response in students_votes:
+        for value in students_votes.items():
+            student = value[0]
+            response = value[1]
             if not response:
                 # update voting power and number of wrong
                 students_metadata[student][0] *= 0.9
@@ -114,15 +122,15 @@ def update_student_metadata(students_metadata, students_votes, majority_liar, bi
 # Remote from s->H
 def remote_path(node, client, shortest_paths, cur_bots_index):
     sp = shortest_paths.get(node)
-    if cur_bots_index < len(sp):
+    if cur_bots_index < len(sp) - 1:
         from_node = sp[cur_bots_index]
         to_node = sp[cur_bots_index + 1]
         client.remote(from_node, to_node)
 
 
 # Scout
-def scout_k(node, client, students_metadata, biggest_liar):
-    if biggest_liar[1] <= math.floor(client.n/2):
+def scout_k(node, client, biggest_liar):
+    if biggest_liar[1] >= math.floor(client.n/2):
         return client.scout(node, [biggest_liar[0]])
     else:
         return client.scout(node, [s for s in range(1, client.k + 1)])
@@ -151,7 +159,7 @@ def generate_student_list(client):
     students = {}
     for i in range(1,  client.k + 1):
         value = [1, 0]
-        students[i] =  value
+        students[i] = value
     return students
 
 #
