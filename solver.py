@@ -33,7 +33,7 @@ def solve(client):
     # ordered list of [node, shortest path weight] dec order
     sp_ordered_list = convert_dict_to_list(sp_lengths)
     sp_ordered_list.reverse()
-    print(shortest_paths)
+    # print(shortest_paths)
     # max students
     biggest_liar = [-1, -1]
 
@@ -54,7 +54,7 @@ def solve(client):
                     yes += students_metadata.get(s)[0]
                 else:
                     no += students_metadata.get(s)[0]
-            remote_boolean = (yes >= no)
+            remote_boolean = (yes >= no) # Issue here since you are not doing majority i.e. T/nodes
         # Remote
         if remote_boolean:
             # find neighbor in shortest paths
@@ -82,21 +82,22 @@ def solve(client):
         bots_undiscovered = client.l - bots_to_h
         while bots_undiscovered > 0:
             if len(majority_false) >= 1:
-                check_index = random.randint(0, len(majority_false) - 1)
+                check_index = random.choice(majority_false)
             else:
-                check_index = 0
-            x = majority_false[check_index]
-            node = x[0]
+                check_index = majority_false[0]
+            xnode = check_index
+            node = xnode[0]
             neighbor = shortest_paths.get(node)[1]
             remoted_value = client.remote(node, neighbor)
             if remoted_value != 0:
                 bots_undiscovered -= 1
                 elements_with_bots.append(node)
-            majority_false.remove(x)
+            majority_false.remove(xnode)
             for x in elements_with_bots:
-                print(shortest_paths[x])
-                for y in range(1, len(shortest_paths[x]) - 1):
+                for y in range(1, len(shortest_paths[x])-1):
                     remote_path(x, client, shortest_paths, y)
+            if node in elements_with_bots:
+                elements_with_bots.remove(node)
     client.end()
 
 
@@ -139,7 +140,7 @@ def remote_path(node, client, shortest_paths, cur_bots_index):
 
 # Scout
 def scout_k(node, client, biggest_liar):
-    if biggest_liar[1] >= math.floor(client.n/2):
+    if biggest_liar[1] >= math.ceil(client.n/2):
         return client.scout(node, [biggest_liar[0]])
     else:
         return client.scout(node, [s for s in range(1, client.k + 1)])
