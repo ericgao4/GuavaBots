@@ -41,6 +41,8 @@ def solve(client):
     # bots that were remoted to h
     bots_to_h = 0
     for node, sp_weight in sp_ordered_list:
+        if bots_to_h == client.l:
+            break
         # Scout
         remote_boolean = True
         if node not in remoted_nodes:
